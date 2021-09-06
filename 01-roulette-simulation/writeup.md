@@ -1,79 +1,94 @@
----
-title: "The Martingale Strategy in Roulette"
-author: 'Jingyuan Wu'
-date: "09/04/2021"
-output:
-    github_document: default
----
+The Martingale Strategy in Roulette
+================
+Jingyuan Wu
+09/04/2021
 
-```{r global options, include = FALSE}
-knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE, cache=TRUE)
-```
+# Introduction
 
-# Introduction 
-
-This blog is showing how to use computer simulation to understand the operating characteristics of the Martingale Strategy.
+This blog is showing how to use computer simulation to understand the
+operating characteristics of the Martingale Strategy.
 
 ## What is Roulette?
-A roulette table composed of 38 (or 37) evenly sized pockets on a wheel. 2 are green, 18 are red, and 18 are black. The pockets are also numbered. Roulette is a game of chance in which a pocket is randomly selected. Gamblers may wager on the color or number of the random selected pockets. The payout for a bet on black (or red) is $1 for each $1 wagered. This means that if a gambler bets $1 on black and the randomly selected pocket is black, then the gambler will get the original $1 wager and an additional $1 as winnings.
+
+A roulette table composed of 38 (or 37) evenly sized pockets on a wheel.
+2 are green, 18 are red, and 18 are black. The pockets are also
+numbered. Roulette is a game of chance in which a pocket is randomly
+selected. Gamblers may wager on the color or number of the random
+selected pockets. The payout for a bet on black (or red) is $1 for each
+$1 wagered. This means that if a gambler bets $1 on black and the
+randomly selected pocket is black, then the gambler will get the
+original $1 wager and an additional $1 as winnings.
 
 ## The Martingale Strategy
+
 The strategy plays out for a single sequence of spins.
 
 {Black, Black, Red}.
 
 | Play | Wager | Outcome | Earnings |
 |:----:|:-----:|:-------:|:--------:|
-|   1  |   1   |  Black  |    -1    |
-|   2  |   2   |  Black  |    -3    |
-|   3  |   4   |   Red   |    +1    |
+|  1   |   1   |  Black  |    -1    |
+|  2   |   2   |  Black  |    -3    |
+|  3   |   4   |   Red   |    +1    |
 
 Now consider a sequence {Black, Black, Black, Red}.
 
 | Play | Wager | Outcome | Earnings |
 |:----:|:-----:|:-------:|:--------:|
-|   1  |   1   |  Black  |    -1    |
-|   2  |   2   |  Black  |    -3    |
-|   3  |   4   |  Black  |    -7    |
-|   4  |   8   |   Red   |    +1    |
+|  1   |   1   |  Black  |    -1    |
+|  2   |   2   |  Black  |    -3    |
+|  3   |   4   |  Black  |    -7    |
+|  4   |   8   |   Red   |    +1    |
 
 # Simulation
-The Martingale Strategy appears to always end in positive earnings, regardless of how unlucky a string of spins may be. Simulations will be used below to show whether the strategy is actually profitable.
+
+The Martingale Strategy appears to always end in positive earnings,
+regardless of how unlucky a string of spins may be. Simulations will be
+used below to show whether the strategy is actually profitable.
 
 ## Parameters Description
-B: Starting budget\
-W: Winnings threshold for stopping\
-L: Time threshold for stopping\
-M: Casino’s maximum wager\
+
+B: Starting budget  
+W: Winnings threshold for stopping  
+L: Time threshold for stopping  
+M: Casino’s maximum wager  
 
 ## Supposed Starting Value of Parameters
-B = $200\
-W = $300 (Starting budget + $100 winnings)\
-L = 1000 plays\
-M = $100\
+
+B = $200  
+W = $300 (Starting budget + $100 winnings)  
+L = 1000 plays  
+M = $100  
 
 ## Start A Series of Wager in a Simulation
-In casino games, people always pay attention to their ROI. As a result, the calculation of the average earnings of a gambler that uses this strategy comes first.
 
-Start from a single play using the Martingale Strategy. There will be a for loop below to simulate the iteration of a series of wagers.
+In casino games, people always pay attention to their ROI. As a result,
+the calculation of the average earnings of a gambler that uses this
+strategy comes first.
 
-*Notes: There are also some temporary variables/functions introduced into this simulation.*
+Start from a single play using the Martingale Strategy. There will be a
+for loop below to simulate the iteration of a series of wagers.
 
-+ state: list, the list of updated values after spinning the roulette wheel
+*Notes: There are also some temporary variables/functions introduced
+into this simulation.*
 
-+ plays: integer, the number of plays executed
+-   state: list, the list of updated values after spinning the roulette
+    wheel
 
-+ previous_wager: number, the wager in the previous play (0 at first play)
+-   plays: integer, the number of plays executed
 
-+ previous_win: TRUE/FALSE, indicator if the previous play was a win (TRUE at first play)
+-   previous\_wager: number, the wager in the previous play (0 at first
+    play)
 
+-   previous\_win: TRUE/FALSE, indicator if the previous play was a win
+    (TRUE at first play)
 
-```{r}
+``` r
 library(tidyverse)
 library(dplyr)
 ```
 
-```{r}
+``` r
 #' @return The updated state list
 one_play <- function(state){
   
@@ -100,23 +115,24 @@ one_play <- function(state){
 
 **Stopping Rule**
 
-The simulation loop will end (which also means that the gambler has to stop) if it meets any of the following situations:
+The simulation loop will end (which also means that the gambler has to
+stop) if it meets any of the following situations:
 
-+ the player has W dollars
+-   the player has W dollars
 
-+ the player goes bankrupt
+-   the player goes bankrupt
 
-+ the player completes L wagers (or plays)
+-   the player completes L wagers (or plays)
 
 In logical expressions:
 
-+ @param B >= W
+-   @param B &gt;= W
 
-+ @param B <= 0
+-   @param B &lt;= 0
 
-+ plays >= L
+-   plays &gt;= L
 
-```{r}
+``` r
 #' Stopping rule
 #'
 #' Takes the state list and determines if the gambler has to stop
@@ -182,21 +198,40 @@ for(j in seq_along(walk_out_money)){
 hist(walk_out_money, breaks = 100)
 ```
 
-The histogram above shows the distribution of walk out money after 10000 trials. There are only two results: a gambler will have 300 dollars or 0 when he walks out of the casino.
+![](writeup_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
-```{r}
+The histogram above shows the distribution of walk out money after 10000
+trials. There are only two results: a gambler will have 300 dollars or 0
+when he walks out of the casino.
+
+``` r
 # Estimated probability of walking out with extra cash
 mean(walk_out_money > 200)
 ```
 
-```{r}
+    ## [1] 0.5136
+
+``` r
 # Estimated earnings
 mean(walk_out_money - 200)
 ```
 
-After 10000 trials, the gambler will loose an average of about 46 dollars in this simulation. There is a new parameter **walk out money** added to the simulation, which stands for the money the gambler owns after the game ends. As the starting budget is 200 dollars, the estimated earning of the gambler can be (walk_out_money - 200). Then, take the average of 10000 trials' estimated earnings (walk_out_money - 200) as **the average earnings of a gambler that uses the Martingale Strategy**. Similarly, the average probability of walking out with extra cash is calculated by taking the average of 10000 trials' estimated probability of walking out with extra cash (walk_out_money > 200). The average probability is slightly greater than 50%, which indicates the Martingale Strategy is indeed profitable.
+    ## [1] -45.8905
 
-```{r}
+After 10000 trials, the gambler will loose an average of about 46
+dollars in this simulation. There is a new parameter **walk out money**
+added to the simulation, which stands for the money the gambler owns
+after the game ends. As the starting budget is 200 dollars, the
+estimated earning of the gambler can be (walk\_out\_money - 200). Then,
+take the average of 10000 trials’ estimated earnings (walk\_out\_money -
+200) as **the average earnings of a gambler that uses the Martingale
+Strategy**. Similarly, the average probability of walking out with extra
+cash is calculated by taking the average of 10000 trials’ estimated
+probability of walking out with extra cash (walk\_out\_money &gt; 200).
+The average probability is slightly greater than 50%, which indicates
+the Martingale Strategy is indeed profitable.
+
+``` r
 library(magrittr)
 single_spin <- function(){
   possible_outcomes <- c(rep("red",18), rep("black",18), rep("green",2))
@@ -270,20 +305,34 @@ profit <- function(ledger){
 }
 ```
 
-```{r}
+``` r
 epg <- one_series(1000, 200, 300, 100)
 #head(epg)
 plot(epg$game_index, (epg$ending_budget-200), main="Earning from Each Play Using Martingale Strategy", 
    xlab="Play Number", ylab="Earning")
 ```
 
-The scatter plot with the x-axis of Play Number, y-axis of Earning stands for the evolution over a series of wagers using the Martingale Strategy at the roulette wheel. It shows a positive correlation between Play Number and Earning. The more games the gambler plays, the more earnings the gambler will gain until the stopping rules are triggered. It also shows that after about 200 plays, the gambler will get the most earnings of 100 dollars.
+![](writeup_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+The scatter plot with the x-axis of Play Number, y-axis of Earning
+stands for the evolution over a series of wagers using the Martingale
+Strategy at the roulette wheel. It shows a positive correlation between
+Play Number and Earning. The more games the gambler plays, the more
+earnings the gambler will gain until the stopping rules are triggered.
+It also shows that after about 200 plays, the gambler will get the most
+earnings of 100 dollars.
 
 ## Impact of parameters
-This part will introduce how changing a parameter of the simulation will or will not have an impact on earnings. Use hypothesis and inference to estimate the relationships between parameters and average earnings.
 
-First, raise a hypothesis: earnings are positively correlated to average earnings, which means average earnings change with earnings in the same trend.
-```{r}
+This part will introduce how changing a parameter of the simulation will
+or will not have an impact on earnings. Use hypothesis and inference to
+estimate the relationships between parameters and average earnings.
+
+First, raise a hypothesis: earnings are positively correlated to average
+earnings, which means average earnings change with earnings in the same
+trend.
+
+``` r
 one_play <- function(state){
   
     # Wager
@@ -365,7 +414,7 @@ one_series <- function(
 get_last <- function(x) x[length(x)] 
 ```
 
-```{r}
+``` r
 #Changing B
 cB <- c(100,200,300,400,500)
 Earning <- vector()
@@ -375,10 +424,14 @@ for (i in 1:length(cB)){
 plot(cB, Earning, type="b", main="Earning Depends on B", xlab= "Starting Budget", ylab = "Earning")
 ```
 
-After changing Starting Budget with five specific numbers around B's starting value, there is a positive correlation shown between Starting Budget and Earning. The more starting budget the gambler has, the more earnings the gambler will get.
+![](writeup_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
+After changing Starting Budget with five specific numbers around B’s
+starting value, there is a positive correlation shown between Starting
+Budget and Earning. The more starting budget the gambler has, the more
+earnings the gambler will get.
 
-```{r}
+``` r
 #Changing W
 cW <- c(100,200,300,400,500)
 Earning <- vector()
@@ -390,9 +443,15 @@ for (i in 1:length(cW)){
 plot(cW, Earning, type="b", main="Earning Depends on W", xlab= "Winnings Threshold for Stopping", ylab = "Earning")
 ```
 
-After changing Winnings Threshold for Stopping with five specific numbers around W's starting value, there is a eye-catching point stands out, which is the optimal solution for W. When Winnings Threshold for Stopping is 300 dollars, the gambler can get the most earnings of 100 dollars.
+![](writeup_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
-```{r}
+After changing Winnings Threshold for Stopping with five specific
+numbers around W’s starting value, there is a eye-catching point stands
+out, which is the optimal solution for W. When Winnings Threshold for
+Stopping is 300 dollars, the gambler can get the most earnings of 100
+dollars.
+
+``` r
 #Changing M
 cM <- c(100,200,300,400,500)
 Earning <- vector()
@@ -404,16 +463,30 @@ for (i in 1:length(cM)){
 plot(cM, Earning, type="b", main="Earning Depends on M", xlab= "Casino’s Maximum Wager", ylab = "Earning")
 ```
 
-After changing Casino’s Maximum Wager with five specific numbers around M's starting value, there is no significant change unless M turns to 500 with a sharp drop.
+![](writeup_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
-In conclusion, changing parameters B and W will have significant impact on earnings. Changing parameters M will not have significant impact on earnings.
+After changing Casino’s Maximum Wager with five specific numbers around
+M’s starting value, there is no significant change unless M turns to 500
+with a sharp drop.
 
-Based on the hypothesis that the impact of changing parameters on average earnings is consistent with the impact on earnings, it can be inferred that changing parameter B and W does have an impact on average earnings, while changing parameter M does not have an impact on average earnings.
+In conclusion, changing parameters B and W will have significant impact
+on earnings. Changing parameters M will not have significant impact on
+earnings.
+
+Based on the hypothesis that the impact of changing parameters on
+average earnings is consistent with the impact on earnings, it can be
+inferred that changing parameter B and W does have an impact on average
+earnings, while changing parameter M does not have an impact on average
+earnings.
 
 ## Average Number of Plays Before Stopping
-Another interesting question is what's the average number of plays before stopping. It tells the gambler when to stop at average and also shows how stopping rules work. (The explanation of stopping rules are shown in "Start A Series of Wager in a Simulation" part.)
 
-```{r}
+Another interesting question is what’s the average number of plays
+before stopping. It tells the gambler when to stop at average and also
+shows how stopping rules work. (The explanation of stopping rules are
+shown in “Start A Series of Wager in a Simulation” part.)
+
+``` r
 play_number_before_stopping <- rep(NA, 1000)
 for(i in seq_along(play_number_before_stopping)){
   play_number_before_stopping[i] <- one_series(200,300,1000,100) %>% length
@@ -421,16 +494,33 @@ for(i in seq_along(play_number_before_stopping)){
 mean(play_number_before_stopping)
 ```
 
-Same as calculating the average earnings of a gambler that uses Martingale Strategy, the simulation iterates in a for loop to mimic a series of wagers and end the loop when it meets either of stopping rules. The new variable "play_number_before_stopping" stands for the number of plays before stopping. The average of play_number_before_stopping will be **average number of plays before stopping**.
+    ## [1] 205.49
+
+Same as calculating the average earnings of a gambler that uses
+Martingale Strategy, the simulation iterates in a for loop to mimic a
+series of wagers and end the loop when it meets either of stopping
+rules. The new variable “play\_number\_before\_stopping” stands for the
+number of plays before stopping. The average of
+play\_number\_before\_stopping will be **average number of plays before
+stopping**.
 
 # Conclusions
-In this article, simulations are applied multiple times to verify Martingale Strategy from different aspects with several interesting functions and probability and inference theories. However, they are only simulations. It's still hard to say how the gambler will get after the game. Just enjoy the game and see what will happen.
+
+In this article, simulations are applied multiple times to verify
+Martingale Strategy from different aspects with several interesting
+functions and probability and inference theories. However, they are only
+simulations. It’s still hard to say how the gambler will get after the
+game. Just enjoy the game and see what will happen.
 
 # Limitations
-Simulations are always based on and limited to theories/hypotheses/conditions and can never take place of real tests.
 
-Deviations can not be avoided in computer simulations due to the algorithms of computers.
+Simulations are always based on and limited to
+theories/hypotheses/conditions and can never take place of real tests.
 
-Humanity is tricky. It is hard to leave casinos without earnings/with the greed that wants to keep winning.
+Deviations can not be avoided in computer simulations due to the
+algorithms of computers.
+
+Humanity is tricky. It is hard to leave casinos without earnings/with
+the greed that wants to keep winning.
 
 **P.S. Casino always wins!**
