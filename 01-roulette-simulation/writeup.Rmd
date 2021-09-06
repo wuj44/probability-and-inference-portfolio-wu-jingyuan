@@ -3,7 +3,7 @@ title: "The Martingale Strategy in Roulette"
 author: 'Jingyuan Wu'
 date: "09/04/2021"
 output:
-    github_document: default
+    html_document: default
 ---
 
 ```{r global options, include = FALSE}
