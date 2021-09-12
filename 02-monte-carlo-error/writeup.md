@@ -281,7 +281,7 @@ output %>%
    split(.$P) %>%
    lwith({
      lines(x, abs_error, col = col[1], lwd = 3, type = "b", pch = 16)
-     text(x[1], abs_error[1], paste0("p=", P[1]), pos = 2, col=col[1])
+     text(x[1], abs_error[1], paste0("p=", P[1]), pos = 2, col=col[1], cex=.75)
      title(main = "The relationship between N and abs_error", xlab = "N (log2scale)", ylab = "abs_error (log10scale)")
    })
 ```
