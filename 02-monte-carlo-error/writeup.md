@@ -162,25 +162,25 @@ for(i in 1:nrow(output)){
 ```
 
 Output grid:  
-N: sample size to be replicated for each probability, (2^2, 2^3, …,
-2^15)  
-P: probabilities to be replicated for each sample size, (0.01, 0.05,
-0.10, 0.25, 0.50)  
+N: replicate numbers for each probability, (2^2, 2^3, …, 2^15)  
+P: probabilities for each series of replications, (0.01, 0.05, 0.10,
+0.25, 0.50)  
 
 For loop:  
 r: times of simulations, 10000  
-p: unit probability (true value), from P  
-n: unit sample size, from N  
+p: unit of probability (true value), from P  
+n: unit of replicate number, from N  
 phat: unit probability estimated from simulation, randomly generated
 based on r, p, n  
-abs\_error: average absolute error between estimated values and true
-values  
-rel\_error: average relative error between abs\_errors and true values  
+abs\_error: mean absolute error between estimated values and true values
+(find all of absolute errors (p\[i\] – p), add them up and divide by the
+number of errors)  
+rel\_error: mean relative error between abs\_errors and true values  
 
 ## Simulation with the x-axis on the log2 scale
 
 ``` r
-#the relationship between abs_error and log2(N)
+#x=log2(N) and y=abs_error
 output %>%
    mutate(x = log2(N)) %>%
    mutate(col = as.factor(P) %>% as.numeric) %>%
@@ -218,12 +218,12 @@ box()
 ![](writeup_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 The figure above shows that in this simulation, the relationship between
-N and abs\_error is negative. The larger the sample size is, the smaller
-the absolute error is. The results of different “p”s show the
-reliability of the simulation.
+N and abs\_error is negative. The larger the replicate number is, the
+smaller the mean absolute error is. The results of different “p”s show
+the reliability of the simulation.
 
 ``` r
-#the relationship between rel_error and log2(N)
+#x=log2(N) and y=rel_error
 output %>%
    mutate(x = log2(N)) %>%
    mutate(col = as.factor(P) %>% as.numeric) %>%
@@ -261,8 +261,8 @@ box()
 ![](writeup_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 The figure above shows that in this simulation, the relationship between
-N and rel\_error is negative. The larger the sample size is, the smaller
-the relative error is.
+N and rel\_error is negative. The larger the replicate number is, the
+smaller the mean relative error is.
 
 ## Simulation with the x-axis on the log2 scale and the y-axis on the log10 scale
 
@@ -271,7 +271,7 @@ on the log10 scale in order to clarify such negative relationships
 between N and abs\_error, N and rel\_error more clearly.
 
 ``` r
-#the relationship between log10(abs_error) and log2(N)
+#x=log2(N) and y=log10(abs_error)
 output %>%
    mutate(x = log2(N)) %>%
    mutate(abs_error = log10(abs_error)) %>%
@@ -309,11 +309,11 @@ box()
 
 ![](writeup_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
-This figure almost shows the negative linear relationship between N and
-abs\_error.
+This figure almost shows the negative linear correlation between N (the
+replicate number) and abs\_error (the mean absolute error).
 
 ``` r
-#the relationship between rel_error and N at the scale of y=log10(rel_error) and x=log2(N)
+#x=log2(N) and y=log10(rel_error)
 output %>%
    mutate(x = log2(N)) %>%
    mutate(rel_error = log10(rel_error)) %>%
@@ -351,21 +351,19 @@ box()
 
 ![](writeup_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
-This figure almost shows the negative linear relationship between N and
-rel\_error.
+This figure almost shows the negative linear correlation between N (the
+replicate number) and rel\_error (the mean relative error).
 
 # Conclusion
 
 Obviously, after plotting these four graphs above, the relationship
-between then number of replicates and simulation error shows up. It
-seems that the intuitive probability is reasonable. The degree of error
-gets smaller as the number of simulation replicates increases. And there
-is almost a negative linear correlation between the replicate number of
-simulation and the degree of error when taking N on log2 scale and
-abs\_error/rel\_error on log10 scale.
+between the number of replicates and simulation error shows up. It seems
+that the intuitive probability is reasonable. The degree of error gets
+smaller as the number of simulation replicates increases. And there is
+almost a negative linear correlation between the replicate number of
+simulation and the degree of error when taking N on log2 scale,
+abs\_error and rel\_error on log10 scale.
 
-For the five “p”s, the smaller the probability of the true value is, the
-smaller the absolute error is, while the greater the probability of the
-true value is, the smaller the relative error is. When p=0.01, mean
-absolute error takes the minimum. When p=0.5, mean relative error takes
-the minimum.
+For the five “p”s, they increase the credibility of the simulation. When
+p=0.01, mean absolute error takes the minimum. When p=0.5, mean relative
+error takes the minimum.
