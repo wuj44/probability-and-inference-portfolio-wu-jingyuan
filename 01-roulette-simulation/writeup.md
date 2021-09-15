@@ -229,7 +229,8 @@ Strategy**. Similarly, the average probability of walking out with extra
 cash is calculated by taking the average of 10000 trials’ estimated
 probability of walking out with extra cash (walk\_out\_money &gt; 200).
 The average probability is slightly greater than 50%, which indicates
-the Martingale Strategy is indeed profitable.
+the Martingale Strategy is considered as a “winning strategy” with
+“negative earning money”.
 
 ``` r
 library(magrittr)
@@ -309,7 +310,7 @@ profit <- function(ledger){
 epg <- one_series(1000, 200, 300, 100)
 #head(epg)
 plot(epg$game_index, (epg$ending_budget-200), main="Earning from Each Play Using Martingale Strategy", 
-   xlab="Play Number", ylab="Earning")
+   xlab="Play Number", ylab="Earning", type="l")
 ```
 
 ![](writeup_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
@@ -416,68 +417,80 @@ get_last <- function(x) x[length(x)]
 
 ``` r
 #Changing B
+times <- 1000
 cB <- c(100,200,300,400,500)
 Earning <- vector()
+avg_Earning <- vector()
 for (i in 1:length(cB)){
-  Earning[i] <- one_series(cB[i], 300, 1000, 100) %>% get_last() - 200
+  for (j in 1:times){
+    Earning[j] <- one_series(cB[i], 300, 1000, 100) %>% get_last() - cB[i]
+  }
+    avg_Earning[i] <- mean(Earning)
 }
-plot(cB, Earning, type="b", main="Earning Depends on B", xlab= "Starting Budget", ylab = "Earning")
+
+plot(cB, avg_Earning, type="b", main="Earning Depends on B", xlab= "Starting Budget", ylab = "Average Earning")
 ```
 
 ![](writeup_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 After changing Starting Budget with five specific numbers around B’s
-starting value, there is a positive correlation shown between Starting
-Budget and Earning. The more starting budget the gambler has, the more
-earnings the gambler will get.
+starting value and doing 1000 times simulations for each Starting
+Budget, it shows that the more starting budget the gambler has, the more
+average earnings the gambler will get as the budget starts from 300
+dollars.
 
 ``` r
 #Changing W
+times <- 1000
 cW <- c(100,200,300,400,500)
 Earning <- vector()
+avg_Earning <- vector()
 for (i in 1:length(cW)){
-  Earning[i] <- one_series(200, cW[i], 1000, 100) %>% get_last() - 200
-  
+  for (j in 1:times){
+    Earning[j] <- one_series(cW[i], 300, 1000, 100) %>% get_last() - 200
+  }
+    avg_Earning[i] <- mean(Earning)
 }
 
-plot(cW, Earning, type="b", main="Earning Depends on W", xlab= "Winnings Threshold for Stopping", ylab = "Earning")
+plot(cW, avg_Earning, type="b", main="Earning Depends on W", xlab= "Winnings Threshold for Stopping", ylab = "Average Earning")
 ```
 
 ![](writeup_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
 After changing Winnings Threshold for Stopping with five specific
-numbers around W’s starting value, there is a eye-catching point stands
-out, which is the optimal solution for W. When Winnings Threshold for
-Stopping is 300 dollars, the gambler can get the most earnings of 100
-dollars.
+numbers around W’s starting value and doing 1000 times simulations for
+each Winnings Threshold for Stopping, it shows a positive relationship
+between Winnings Threshold for Stopping and Average Earning. The more
+winnings threshold for stopping is, the more average earnings the
+gambler will get.
 
 ``` r
 #Changing M
+times <- 1000
 cM <- c(100,200,300,400,500)
 Earning <- vector()
+avg_Earning <- vector()
 for (i in 1:length(cM)){
-  Earning[i] <- one_series(200, 300, 1000, cM[i]) %>% get_last() - 200
-  
+  for (j in 1:times){
+    Earning[j] <- one_series(cM[i], 300, 1000, 100) %>% get_last() - 200
+  }
+    avg_Earning[i] <- mean(Earning)
 }
 
-plot(cM, Earning, type="b", main="Earning Depends on M", xlab= "Casino’s Maximum Wager", ylab = "Earning")
+plot(cM, avg_Earning, type="b", main="Earning Depends on M", xlab= "Casino’s Maximum Wager", ylab = "Average Earning")
 ```
 
 ![](writeup_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 After changing Casino’s Maximum Wager with five specific numbers around
-M’s starting value, there is no significant change unless M turns to 500
-with a sharp drop.
+M’s starting value and doing 1000 times simulations for each Casino’s
+Maximum Wager, it shows a positive relationship between Casino’s Maximum
+Wager and Average Earning. The more casino’s maximum wager is, the more
+average earnings the gambler will get.
 
-In conclusion, changing parameters B and W will have significant impact
-on earnings. Changing parameters M will not have significant impact on
-earnings.
-
-Based on the hypothesis that the impact of changing parameters on
-average earnings is consistent with the impact on earnings, it can be
-inferred that changing parameter B and W does have an impact on average
-earnings, while changing parameter M does not have an impact on average
-earnings.
+In conclusion, changing parameters B, W and M will have impact on
+average earnings and most are positive impact as the parameters
+increase.
 
 ## Average Number of Plays Before Stopping
 
