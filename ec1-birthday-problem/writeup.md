@@ -1,0 +1,164 @@
+writeup
+================
+Jingyuan Wu
+2021/9/24
+
+## Birthday Problem
+
+*In a class of N individuals, what is the probability that at least two
+students will share a birthday?*
+
+## Introduction
+
+This blog is going to explain how to solve the birthday problem with
+both simulation and analytic tools. A plot that shows both solutions for
+possible class sizes from 1 to 80 will be listed at last.
+
+## Assumptions
+
+Leap year is ignored.
+
+Birthdays are equally likely to fall on any day of the year.
+
+## Limitations
+
+Everyone’s birthday is independent.
+
+365 days are in a 1-365 order.
+
+## Solution1: Analytics
+
+Assume:
+
+There are n students in a class.
+
+P(A) = {the probability that at least two students will share a
+birthday}
+
+The complement of A: P(A’) = {the probability that every students has a
+distinct birthday}
+
+P(A) = 1 - P(A’)
+
+After ignoring the leap year, there are 365 days in a year. Each student
+can select any one of these 365 days. As a result, for n students, the
+sample space will be: 365^n.
+
+According to the assumption, if every students has a distinct birthday,
+student1 will have 365 days to choose, student2 will have 364 days to
+choose, student3 will have 363 days to choose, … The number of
+combinations that n students select n distinct days from 365 days will
+be: 365!/(365-n)!, which is the total number of sequence without
+replacement.
+
+The probability that every student has a distinct birthday:
+365!/(365-n)!/(365^n)
+
+P(A’) = \[365!/(365-n)!\]/(365^n)
+
+P(A) = 1-P(A’) = 1-\[365!/(365-n)!\]/(365^n) = 1-n!(365, n)/(365^n)
+
+``` r
+library(ggplot2)
+library(tidyverse)
+```
+
+    ## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
+
+    ## v tibble  3.1.4     v dplyr   1.0.7
+    ## v tidyr   1.1.3     v stringr 1.4.0
+    ## v readr   2.0.1     v forcats 0.5.1
+    ## v purrr   0.3.4
+
+    ## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+    ## x dplyr::filter() masks stats::filter()
+    ## x dplyr::lag()    masks stats::lag()
+
+``` r
+n <- 80
+p <- rep(NA, n)
+for (i in 1:n){
+  p[i] <- 1-choose(365, i) * factorial(i)/(365^i)
+  p[1:i]
+}
+
+bdp_a <- data.frame(class_size=1:n, p)
+#bdp_a
+```
+
+The code above is using a for loop to calculate the probability that at
+least two students will share a birthday for the class sizes from 1 to
+80 with the analytic solution.
+
+## Solution2: Simulation
+
+``` r
+z=0
+pd <- vector()
+q <- vector()
+times <- 1000
+
+for (x in 1:n){
+  for (y in 1:times){
+    bdp_s <- data.frame(class_size=1:x, birthday = round(runif(x,min=1,max=365), 0))
+    bdp_s1 <- bdp_s %>% group_by(birthday) %>% summarise(sum_bd=n())
+    pd[y]=ifelse(nrow(bdp_s1)<x, z+1, z+0)
+      }
+  q[x]<-mean(pd)
+}
+#q
+
+bdp_s2 <- data.frame(class_size=1:n, q)
+
+g2<- bdp_s2 %>% ggplot(aes(x=class_size, y=q)) +
+            geom_point(aes(col="Simulation solution")) +
+   labs(x="Size of group", y="Probability of at least one shared birthday") +
+   theme_bw() +
+   theme(panel.grid.major=element_blank(), panel.grid.minor = element_blank())
+```
+
+The code above is using a for loop to calculate the probability that at
+least two students will share a birthday for the class sizes from 1 to
+80 with the simulation solution. The simulation is using another for
+loop to simulate 1000 times.
+
+## Two Solutions Shown in One Plot
+
+``` r
+g2 +
+   geom_point(aes(class_size, p, col="Analytic solution")) +
+   geom_hline(yintercept=c(0,1), linetype="longdash", color="gray")
+```
+
+![](writeup_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+After plotting two solutions in one graph, they shows similar trends.
+The greater the class size is, the higher the probability that at least
+two students will share a birthday is, which finally is even close to 1.
+However, the points of simulation solution seem more deviated. They
+scatter around the points of analytic solution.
+
+## Pros and Cons of both Approaches
+
+Analytics
+
+Pros: For this problem, analytics seems concise, more accurate and
+time-saving.
+
+Cons: Analytics needs basic knowledge of combinatorics and binomial
+distribution. If the calculation of the question is too complicated due
+to the sample size/the number of combinations, it will be hard for
+analytics to operate.
+
+Simulation
+
+Pros: Simulation can be easily replicated and the conditions of
+simulation can be varied.
+
+Cons: For this problem, simulations seems time-consuming and not precise
+enough. Simulations are always based on and limited to
+theories/hypotheses/conditions and can never take place of real tests.
+Deviations can not be avoided in simulations due to the algorithms of
+computers. Since the more simulations, the closer the results are to the
+true values, sometimes, simulations may cause extra time costs for
+higher accuracy.
