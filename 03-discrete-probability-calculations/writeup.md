@@ -22,9 +22,13 @@ PB and the probability that the Yankees wins is PY = 1 − PB.
 
 ### Assumptions
 
+The result of each game is independent.
+
 The result of each game is either a win or a loss, no tie.
 
 When it comes to best-of-X series, X should be odd.
+
+The team that wins World Series must win the last game.
 
 ### Q1 What is the probability that the Braves win the World Series given that PB = 0.55?
 
@@ -37,6 +41,23 @@ series and could end the series at the 4th or 5th or 6th or 7th game.
 For each combination of wins and losses, the Braves must win the last
 game.
 
+If the series ends in the 4th game, the Braves must win all 4 games and
+loose 0 game.
+
+If the series ends in the 5th game, the Braves must win the last game
+and any 3 other games before, and can loose any 1 game before the last
+game.
+
+If the series ends in the 6th game, the Braves must win the last game
+and any 3 other games before, and can loose any 2 games before the last
+game.
+
+If the series ends in the 7th game, the Braves must win the last game
+and any 3 other games before, and can loose any 3 game before the last
+game.
+
+The combinations and their probabilities are shown below.
+
 | End\_n | losses |   probability    |
 |:------:|:------:|:----------------:|
 |   4    |   0    | dnbinom(0,4,.55) |
@@ -46,7 +67,7 @@ game.
 
 The probability that the Braves wins the World Series given that
 PB = 0.55:
-dnbinom(0,4,.55)+dnbinom(1,4,.55)+dnbinom(2,4,.55)+dnbinom(3,4,.55)=pnbinom(3,4,.55)
+*d**n**b**i**n**o**m*(0, 4, .55) + *d**n**b**i**n**o**m*(1, 4, .55) + *d**n**b**i**n**o**m*(2, 4, .55) + *d**n**b**i**n**o**m*(3, 4, .55) = *p**n**b**i**n**o**m*(3, 4, .55)
 
 ``` r
 library(ggplot2)
@@ -111,15 +132,15 @@ higher `Pr(Win World Series)` is.
 
 The probability that the Braves wins in any given game is 0.55.
 
-This time World Series will be a best-of-X series. X should be odd.
+This time World Series will be a best-of-X series. X is changing from 1
+to 99 and breaking in 2. A for loop is set for X to find the shortest
+series length. While P(Braves win World Series\|PB = .55) ≥ 0.8, the for
+loop breaks and outputs the shortest series length.
 
 The calculation formula remains unchanged. `ceiling()` function is used
 for returning the smallest integer that is greater than or equal to the
 value passed to it as argument, which is in order to find the
-`losses at most` of winning a best-of-X series. A for loop is set for X
-to find the shortest series length. While P(Braves win World
-Series\|PB = .55) ≥ 0.8, the for loop breaks and outputs the the
-shortest series length.
+`losses at most` of winning a best-of-X series.
 
 ``` r
 X=99 #X should be odd.
@@ -150,11 +171,11 @@ The probability that the Braves wins in any given game is m. m: \[0.5,
 This time World Series will be a best-of-q series. q should be odd.
 
 The calculation formula remains unchanged, except that the probability
-that the Braves wins in any given game turns to m\[j\], the Braves at
-most loses \[ceiling(q\[i\]/2)-1\] games.
+that the Braves wins in any given game turns to `m[j]`, the Braves at
+most loses `[ceiling(q[i]/2)-1]` games.
 
-t\[j\] is the shortest length of series that Braves wins World Series
-given m\[j\].
+`t[j]` is the shortest length of series that Braves wins World Series
+given `m[j]`.
 
 Double for loop is set for iterations of
 `Probability of the Braves Winning a Head-to-Head Matchup` and
@@ -219,32 +240,31 @@ B = {Braves win World Series in 7 games}
 
 C = {PB = 0.45}
 
-As there are two PB listed in Q5, it is easy to find that: P(A) = P(C) =
-0.5
+According to `Bayes Rules`,
+$$P(A\|B) = \\frac{P(B\|A)P(A)}{P(B)}$$
+
+As there are two possible PB listed in Q5, it is easy to find that:
+*P*(*A*) = *P*(*C*) = 0.5
 
 According to the Law of Total Probability:
-*P*(*B*) = *P*(*A*\|*B*) + *P*(*C*\|*B*)
+*P*(*B*) = *P*(*B*\|*A*) + *P*(*B*\|*C*)
 
-P(B) = \[dnbinom(3,4,.55)+dnbinom(3,4,.45)\]\*.5
+*P*(*B*) = *d**n**b**i**n**o**m*(3, 4, .55) \* .5 + *d**n**b**i**n**o**m*(3, 4, .45)\] \* .5
 
 When calculating the probability of the Braves wins World Series in 7
 games given the probability that the Braves wins in any given game is
 0.55, it is obvious that the Braves wins the last game of the best-of-7
-match-up and loses any 3 of the previous games. As a result, P(B\|A) =
-dnbinom(3,4,.55)
+match-up and loses any 3 of the previous games. As a result,
+*P*(*B*\|*A*) = *d**n**b**i**n**o**m*(3, 4, .55)
 
-Based on the `Bayes Rules`,
-*P*(*A*\|*B*) = *P*(*B*\|*A*)*P*(*A*)/*P*(*B*)
-
-P(A\|B) =
-dnbinom(3,4,.55)*0.5/{\[dnbinom(3,4,.55)+dnbinom(3,4,.45)\]*0.5}
+$$P(A\|B) = \\frac{P(B\|A)P(A)}{P(B)} = \\frac{dnbinom(3,4,.55)\*0.5}{dnbinom(3,4,.55) \*.5 + dnbinom(3,4,.45)\*0.5}$$
 
 ``` r
-pb<-dnbinom(3,4,.55)*.5+dnbinom(3,4,.45)*.5
-pba=dnbinom(3,4,.55)
-pa=.5
+pb<-dnbinom(3,4,.55)*.5+dnbinom(3,4,.45)*.5 #P(Braves win World Series in 7 games)
+pba=dnbinom(3,4,.55) #P(Braves win World Series in 7 games|P_B=0.55)
+pa=.5 #P(P_B=0.55)
 pab=pba*pa/pb
-pab
+pab #Answer
 ```
 
     ## [1] 0.55
