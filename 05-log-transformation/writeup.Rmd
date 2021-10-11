@@ -2,7 +2,7 @@
 title: "writeup"
 author: "Jingyuan Wu"
 date: "2021/10/8"
-output: github_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
