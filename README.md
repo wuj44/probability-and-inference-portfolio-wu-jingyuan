@@ -8,4 +8,6 @@ probability-and-inference-portfolio
 [02b-interview-question](https://github.com/wuj44/probability-and-inference-portfolio-wu-jingyuan/tree/main/02b-interview-question)\
 [03-discrete-probability-calculations](https://github.com/wuj44/probability-and-inference-portfolio-wu-jingyuan/tree/main/03-discrete-probability-calculations)\
 [04-home-field-advantage](https://github.com/wuj44/probability-and-inference-portfolio-wu-jingyuan/tree/main/04-home-field-advantage)\
+[05-log-transformation](https://github.com/wuj44/probability-and-inference-portfolio-wu-jingyuan/tree/main/05-log-transformation)\
+[06-order-statistics](https://github.com/wuj44/probability-and-inference-portfolio-wu-jingyuan/tree/main/06-order-statistics)\
 [ec1-birthday-problem](https://github.com/wuj44/probability-and-inference-portfolio-wu-jingyuan/tree/main/ec1-birthday-problem)
