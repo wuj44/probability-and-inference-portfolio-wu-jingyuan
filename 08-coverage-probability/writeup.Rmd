@@ -6,9 +6,10 @@ output: html_document
 ---
 
 ## Coverage probability
+
 In statistics, the coverage probability of a confidence interval is the proportion of the time that the interval contains the true value of interest. It also refers to the probability that a confidence region contains the true value of a parameter.
 
-```{r message = F}
+```{r message=F, warning=F}
 library(tidyverse)
 library(stats4)
 ```
@@ -21,11 +22,11 @@ Confidence interval: In this blog, the 95% confidence interval of the median wil
 
 Coverage probability: In this blog, define the coverage probability as the long run proportion of intervals that capture the population parameter of interest. Conceptually, one can calculate the coverage probability with the following steps:
 
-1. generate a sample of size N from a known distribution
+1. Generate a sample of size N from a known distribution.
 
-2. construct a confidence interval
+2. Construct a confidence interval.
 
-3. determine if the confidence captures the population parameter
+3. Determine if the confidence captures the population parameter.
 
 4. Repeat steps (1) - (3) many times. Estimate the coverage probability as the proportion of samples for which the confidence interval captured the population parameter.
 
@@ -39,7 +40,7 @@ Write a `boot_ci` function to find a series of median for each sample via simula
 
 Write a `capture_median` function to find if the confidence interval can capture the estimated median. As the median of standard normal distribution is 0, compare the lower bound and upper bound of the interval with 0. If it returns 0, it acts as parameter of interest.
 
-```{r}
+```{r message=F, warning=F}
 #generate a sample of size N from a known distribution
 generate_data <- function(N){ 
   # Hard coded standard normal distribution
@@ -59,15 +60,13 @@ fit <- mle(minuslogl = ll , start = list(mean=xb, sd=sd))
 }
 
 #construct a confidence interval
-boot_ci <- function(data, summary = "median"){
+boot_ci <- function(data){
   # Hard coded number of draws
   R <- 5000
-  # Set median as default summary measure
-  sm <- get(summary)
   sampdist <- rep(NA, R)
   for(i in 1:R){
-    b <- rnorm(201, mean = data[2], sd = data[3])
-    sampdist[i] <- sm(b)
+    b <- rnorm(data[1], mean = data[2], sd = data[3])
+    sampdist[i] <- median(b)
   }
   # Hard coded symmetric density interval
   quantile(sampdist, c(0.025, 0.975))
@@ -82,10 +81,9 @@ capture_median <- function(ci){
 
 ### A single sample
 
-Generate a single sample from a standard normal distribution of size N=201. Take a look at the output, see how these functions work on a single sample.
+In this part, we generated a single sample from a standard normal distribution of size N=201. Take a look at the output. If it is 1, it means the estimated median is in the confidence interval. Otherwise, the output 0 shows the estimated median is out of confidence interval. 
 
-```{r message = F}
-set.seed(22)
+```{r message=F, warning=F}
 out <- 201 %>% generate_data %>% est_mle %>% boot_ci %>% capture_median
 out
 ```
@@ -96,7 +94,7 @@ Simulation times and sample size can be changed to learn more about the operatin
 
 It shows the coverage probability below by calculating the mean of each operation. If the confidence interval does capture estimated median, count 1, otherwise, count 0.
 
-```{r message = F}
+```{r message=F, warning=F}
 M <- 5000
 captures <- rep(NA, M)
 for(i in 1:M){
@@ -106,6 +104,8 @@ for(i in 1:M){
 capture_prob <- mean(captures)
 capture_prob
 ```
+
+If we want to learn more about the operating characteristics of the method above for constructing the 95% confidence interval, we can change the sample size to much bigger or smaller. If we want to improve the accuracy of the simulation, we can increase the repeat times.
 
 ### Conclusion
 
