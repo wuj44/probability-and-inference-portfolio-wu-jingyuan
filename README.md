@@ -12,4 +12,5 @@ probability-and-inference-portfolio
 [06-order-statistics](https://github.com/wuj44/probability-and-inference-portfolio-wu-jingyuan/tree/main/06-order-statistics)\
 [07-mle-and-mm](https://github.com/wuj44/probability-and-inference-portfolio-wu-jingyuan/tree/main/07-mle-and-mm)\
 [08-coverage-probability](https://github.com/wuj44/probability-and-inference-portfolio-wu-jingyuan/tree/main/08-coverage-probability)\
+[99-final-exam](https://github.com/wuj44/probability-and-inference-portfolio-wu-jingyuan/tree/main/99-final-exam)\
 [ec1-birthday-problem](https://github.com/wuj44/probability-and-inference-portfolio-wu-jingyuan/tree/main/ec1-birthday-problem)
