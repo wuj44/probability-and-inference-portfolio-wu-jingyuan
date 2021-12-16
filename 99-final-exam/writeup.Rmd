@@ -1,0 +1,511 @@
+---
+title: "Final Exam"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# Instructions
+
+The final exam will be a one-on-one oral exam with the instructor.  Please meet the instructor near the "fish-bowl" office in the Data Science Institute lobby. The exam will be recorded in Zoom. Please prepare solutions to the following is a set of questions. During the oral exam, the instructor will ask a series of questions covering topics from the course and the questions. For example, the instructor may ask:
+
+1. Please explain how you solved a particular question.
+1. Please solve a new question (perhaps closely related to a question below).
+1. Please explain course topic X.
+
+You will be graded on both the accuracy of your responses and the clarity with which you explain course concepts and solutions to questions.
+
+The final exam should represent your own work.  Do not consult with or collaborate in any way with anyone other than the instructor.
+
+Prior to meeting with the instructor, you should:
+
+   + Create a folder in your Probability and Inference Portfolio; call it `99-final-exam`.
+   + Compile, save, and push your solutions to your GitHub repository
+
+# 1. Simulation
+
+The Monte Hall problem is a classic game show.  Contestants on the show where shown three doors.  Behind one randomly selected door was a sportscar; behind the other doors were goats.
+
+At the start of the game, contestants would select a door, say door A.  Then, the host would open either door B or C to reveal a goat.  At that point in the game, the host would ask the contestant if she would like to change her door selection.  Once a contestant decided to stay or change, the host would open the chosen door to reveal the game prize, either a goat or a car.
+
+In this problem, consider a **modified** version of the Monte Hall problem in which the number of doors is **variable**.  Rather than 3 doors, consider a game with 4 or 5 or 50 doors.  In the modified version of the game, a contestant would select an initial door, say door A.  Then, the host would open **one** of the remaining doors to reveal a goat.  At that point in the game, the host would ask the contestant if she would like to change her door selection.  Once a contestant decided to stay or change, the host would open the chosen door to reveal the game prize, either a goat or a car.
+
+Consider two strategies:
+  
+  1. Always stay with the first door selected.
+  2. Always switch to the unopened door.
+
+**C.** The function `game` below plays a single game of Monte Hall.  The function returns a vector of length two, the first element is the prize under strategy 1 and the second element is the prize under strategy 2.  The function has a single input parameter, N, which is the number of doors in the game.
+
+Use the `game` function to estimate the probability that both strategies result in a goat. Let **N=4**.
+
+```{r}
+require(magrittr)
+require(dplyr)
+library(stats4)
+
+game <- function(N){
+  if(N<3) stop("Must have at least 3 doors")
+  prize <- sample(c(rep("goat",N-1),"car"), N)
+  guess <- sample(1:N,1)
+  game <- data.frame(door = 1:N, prize = prize, stringsAsFactors = FALSE) %>% 
+    mutate(first_guess = case_when(
+      door == guess ~ 1
+      , TRUE ~ 0
+    )) %>% 
+    mutate(potential_reveal = case_when(
+        first_guess == 1 ~ 0
+      , prize == "car" ~ 0
+      , TRUE ~ 1
+    )) %>% 
+    mutate(reveal = 1*(rank(potential_reveal, ties.method = "random") == 3)) %>% 
+    mutate(potential_switch = case_when(
+      first_guess == 1 ~ 0
+      , reveal == 1 ~ 0
+      , TRUE ~ 1
+    )) %>% 
+    mutate(switch = 1*(rank(potential_switch, ties.method = "random") == 3))
+  c(game$prize[game$first_guess == 1], game$prize[game$switch == 1])
+}
+```
+
+```{r}
+set.seed(1)
+lost=vector()
+for (i in 1:1000){
+  result=game(4)
+  lost[i]=ifelse((result[1]=="goat")&(result[2]=="goat"),1,0)
+}
+mean(lost)
+```
+
+
+**B**. Communicate the precision of your simulated probability in part **C** by calculating a **99\%** confidence interval.
+
+
+```{r}
+prop.test(sum(lost==0),1000, conf.level = 0.99)
+```
+
+ 
+**A**. Let D(N) be the difference between the difference in probabilities between strategy 2 and strategy 1.
+
+$$
+D(N) = P(\text{win strategy 2}|\text{N doors}) - P(\text{win strategy 1}|\text{N doors})
+$$
+Create a plot that shows how D changes as N increases.  Put N on the x-asis, ranging from 3 to 10.  Put D on the y-axis.
+
+```{r}
+set.seed(111)
+diff=rep(NA, length(3:10))
+s1=vector()
+s2=vector()
+for (n in 3:10){
+  for (i in 1:1000){
+    res=game(n)
+    s1[i]=res[1]
+    s2[i]=res[2]
+  }
+diff[n-2]=mean(s2=="car")-mean(s1=="car")  
+}
+plot(x=3:10,diff, type="o", xlab="N", ylab="D(N)")
+```
+
+# 2. Probability
+
+Consider a test for a rare genetic condition.  Let T+ denote a test result that indicates the condition is present, while T- denotes absence.  Let D+ and D- denote the true status of the disease.
+
+**C**.  Fill-in the probability table using the following information:
+
++ P(T+|D+) = .85,  and 
++ P(T-|D-) = .95,  and 
++ P(D+) = 0.001
+
+|    |    D+    |    D-    |         |
+|:--:|:--------:|:--------:|:-------:|
+| T+ | 0.00085  | 0.04995  |  0.0508 |
+| T- | 0.00015  | 0.94905  |  0.9492 |
+|    | 0.001    | 0.999    |  1      |
+
+**B**. Calculate the **negative** predictive value of the test, P(D-|T-).
+
+```{r}
+(0.95*0.999)/(0.001*0.15+0.999*0.95)
+```
+
+**A** Create a plot that shows how the **positive** predictive value as a function of the prevalence of disease, P(D+).
+
+```{r}
+prevalence <- seq(0.001, 0.1, length = 50)
+ppv <- (0.85*prevalence)/(0.85*prevalence+0.05*(1-prevalence))
+plot(prevalence, ppv, xlab = "Prevalence", ylab = "PPV")
+```
+
+# 3. Discrete Distributions
+
+Suppose the yearly hospital charges (in thousands of dollars) for a randomly selected Vanderbilt student is a mixture distribution.
+
+For 50% of students, the hospital charges will be $0.  For the remaining 50% of students, the hospital charges are a random variable described by a gamma distribution with shape = 2 and scale = 2.  (Again, in thousands of dollars.)   
+
+```{r}
+hospital_charges <- function(N){
+  group <- rbinom(N, 1, 0.5)
+  charges <- 0*group + rgamma(N, shape = 2, scale = 2)*(1-group)
+  charges
+}
+```
+
+**C**.  What is the 90th percentile for yearly hospital charges for a randomly selected Vanderbilt student?
+
+```{r}
+(replicate(10000, hospital_charges(100) %>% quantile(.9)) %>% mean)*1000
+```
+
+
+**B**.  Consider the **class** average yearly hospital charge for the students in a class of size 30.  Plot the density function or a simulated histogram of the class average yearly hospital charge.
+
+```{r}
+d3b<-replicate(10000, hospital_charges(30) %>% mean)
+hist(d3b*1000, freq=F, xlab="Average Yearly Hospital Charge ($)", main="Class Size=30")
+```
+
+
+**A**.  What is the probability that a randomly selected class of size 30 students will have less than 10 students with zero yearly hospital charges?
+
+```{r}
+mean(replicate(10000,sum(hospital_charges(30)==0)<10))
+#pbinom(9, 30, .5)
+```
+
+
+# 4. Continuous Distributions
+
+**C.** Suppose diastolic blood pressure (DBP) follows a normal distribution with mean 80 mmHg and SD 15 mmHg. What is the probability that a randomly sampled person鈥檚 DBP lies between 70 and 104 mmHg?
+```{r}
+#(70,104]
+pnorm(104,80,15)-pnorm(70,80,15)
+```
+
+**B.** Suppose a human femur was discovered that is 37 cm long.  Also suppose that using the NHANES data, researchers believe the distribution of femur bones, by sex, are distributed as follows:
+
++ Female adult femur $\sim N(36, 3.3)$
++ Male adult femur $\sim N(40, 3.4)$
+
+
+Under the assumption that male and females are equally likely, what is the probability that the discovered femur was from a male?
+
+```{r}
+#Bayes rule
+dx<-function(x){
+  .5*dnorm(x,36,3.3)+.5*dnorm(x,40,3.4)
+}
+
+0.5*dnorm(37,40,3.4)/dx(37)
+```
+
+**A.**  Continuing part **B**, generate a plot of P(femur from male | femur length = x).  Let femur length range from 25 to 50.
+
+```{r}
+femur_length <- 25:50
+prob_male <- 0.5*dnorm(femur_length,40,3.4)/dx(femur_length)
+plot.new()
+plot.window(xlim = c(25,50), ylim = c(0,1))
+lines(femur_length, prob_male)
+axis(1)
+axis(2)
+box()
+title(xlab = "Femur Length", ylab = "P(Male | Femur Length)")
+```
+
+# 5. Expectation and Variance
+
+Let us revisit the yearly hospital charges distribution from a previous section.
+
+>**Recall:** The yearly hospital charges (in thousands of dollars) for a randomly selected Vanderbilt student is a mixture distribution. For 50% of students, the hospital charges will be $0.  For the remaining 50% of students, the hospital charges are a random variable described by a gamma distribution with shape = 2 and scale = 2.  (Again, in thousands of dollars.)   
+
+```{r}
+hospital_charges <- function(N){
+  group <- rbinom(N, 1, 0.5)
+  charges <- 0*group + rgamma(N, shape = 2, scale = 2)*(1-group)
+  charges
+}
+```
+
+**C.** What is E[yearly hospital charges]?
+
+```{r}
+replicate(1000, mean(hospital_charges(10000)*1000)) %>% mean
+```
+
+**B.** Suppose Vanderbilt implements a cap of \$10,000 on yearly student hospital charges.  What is the mean yearly hospital charge under the new policy?
+
+```{r}
+avg=vector()
+for (i in 1:1000){
+  res=hospital_charges(10000)
+  res=ifelse((res>10),10,res)
+  avg=mean(res*1000)
+}
+mean(avg)
+```
+
+
+**A.** What is the variance of yearly hospital charge under the new policy?
+
+```{r}
+variance=vector()
+for (i in 1:1000){
+  res=hospital_charges(10000)
+  res=ifelse((res>10),10,res)
+  variance=var(res*1000)
+}
+mean(variance)
+```
+
+
+# 6. Transformations & Sampling Distributions
+
+**C.** Consider the log normal distribution.  If X is a log normal random variable, then log(X) is a normal random variable.  One way to create pseudo-random draws from the log normal distribution is to generate draws from a normal distribution and then to transform the draws by exponentiating.  The parameters of the log normal distribution are the parameters of the underlying normal distribution, $\mu$ and $\sigma$ (or $\sigma^2$).  
+
+Log normal data are prevalent is biological systems and econometrics.
+
+Suppose a blood chemistry measure has a log normal distribution with $\mu$ = 0 and $\sigma$ = 1. Generate an histogram or density curve for the sampling distribution of the median when the sample size is 101.
+
+```{r}
+s=replicate(10000,exp(rnorm(101)) %>% median)
+plot(density(s), main="Sampling Distribution of the Median (Log Normal)")
+hist(s,freq=F, add=T)
+```
+
+```{r eval=FALSE, include=FALSE}
+z<-replicate(10000, rlnorm(101) %>% median)
+plot(density(z), main="Sampling Distribution of the Median (Log Normal)")
+hist(z, freq=F, add=T)
+```
+
+
+**B.** Below is the CDF function for the kth order statistic when the underlying distribution is log normal with $\mu$ = 0 and $\sigma$ = 1.  Create a plot of the ECDF of the simulated sampling distribution generated in **C** and overlay the CDF using the function below.
+
+```{r}
+Fk <- function(x,k,n){
+  pbinom(k-1, n, plnorm(x), lower.tail = FALSE)
+}
+
+plot(ecdf(s), verticals = TRUE, do.points = FALSE, lwd = 3, main="", col="blue", xlab = parse(text="X[(median)]"))
+curve(Fk(x,51,101), col="red", lwd=3, add=T)
+legend("topleft", c("ECDF","CDF"), col = c("blue","red"), lty=c(1,1), lwd=3, bty = "n", cex=.8)
+```
+
+**A.** Of the 25th, 50th, and 75th quantiles of the distribution from **B**, which will have the tightest 95% CI?  (Show the sampling distribution of each.)
+
+```{r}
+d25=replicate(10000,exp(rnorm(101)) %>% quantile(.25))
+d50=replicate(10000,exp(rnorm(101)) %>% quantile(.50))
+d75=replicate(10000,exp(rnorm(101)) %>% quantile(.75))
+
+
+plot(density(d25), col = "orange", xlim = c(0, 3), lwd = 3, main = "Sampling Distribution (Log Normal)",xlab = "x")
+lines(density(d50), col="blue", lwd=3)
+lines(density(d75), col="red", lwd=3)
+legend("topright", c("25th","50th", "75th"), col = c("orange","blue", "red"), lwd=3, bty="n", cex=.8)
+
+
+ci25=quantile(d25,.975)-quantile(d25,.025)
+ci50=quantile(d50,.975)-quantile(d50,.025)
+ci75=quantile(d75,.975)-quantile(d75,.025)
+result=c(min(ci25, ci50, ci75)==ci25,
+min(ci25, ci50, ci75)==ci50,
+min(ci25, ci50, ci75)==ci75)
+data.frame("CI"=c("25th", "50th","75th"),"Result"=result) %>% filter(Result==T) %>% select(CI)
+```
+
+25th quantiles of the distribution from **B** has the tightest 95% CI.
+
+# 7. Estimation of CDF and PDF from data
+
+The following code will load the NHANES data and select the first 500 rows.
+
+```{r}
+Hmisc::getHdata(nhgh)
+d1 <- nhgh[1:500,]
+```
+
+**C.** Estimate the distribution of standing height for adult (age > 18) males using the MLE method with a normal distribution.  Create a plot of the estimated density function.
+
+```{r}
+#sum(is.na(d1$age))
+#sum(is.na(d1$sex))
+#sum(is.na(d1$ht))
+d7c<-d1 %>% filter(age>18 & sex=="male")
+xb=mean(d7c$ht)
+sd=sd(d7c$ht)
+ll <- function(mean, sd)
+    -sum(stats::dnorm(x=d7c$ht, mean, sd, log=TRUE))
+fit <- mle(minuslogl = ll , start = list(mean=xb, sd=sd))
+mle.mean <- coef(fit)[1]
+mle.sd <- coef(fit)[2]
+hist(d7c$ht, freq = FALSE, main = "PDF of Male Adults' Standing Height (MLE)", xlab="ht", ylim=c(0,0.06))
+curve(dnorm(x,mle.mean,mle.sd), 150, 200, col="blue", lwd=3, add=T)
+```
+
+
+**B.** Estimate the distribution of BMI for adult (age > 18) females using the method of moment method with the gamma distribution. Create a plot of the estimated density function.
+
+```{r}
+#sum(is.na(db$bmi))
+d7b<-d1 %>% filter(age>18 & sex=="female")
+xb_bmi=mean(d7b$bmi)
+var_bmi=var(d7b$bmi)
+lh_bmi <- xb_bmi/var_bmi #rate
+ch_bmi <- xb_bmi^2/var_bmi #shape
+hist(d7b$bmi, freq = FALSE, main = "PDF of Female Adults' BMI (MM)", xlab="BMI")
+curve(dgamma(x, ch_bmi, lh_bmi), col="orange", lwd=5, add = TRUE)
+```
+
+
+**A.** Estimate the distribution of creatinine (SCr) for adults (age > 18) using the kernel density method with a Gaussian kernel.  Create a plot of the estimated density function.
+
+```{r}
+#sum(is.na(db$SCr))
+d7a <- d1 %>% filter(age>18)
+plot(density(d7a$SCr, na.rm=T), main="Plot of Estimated SCr with Gaussian Kernel")
+```
+
+
+
+# 8. Sample from an estimated distribution
+
+The following code will load the low birth weight data from the MASS package.  The description of the variables in the dataset can be found in the birthwt documentation with the command `?MASS::birthwt`.
+
+```{r}
+bwt <- MASS::birthwt
+#?MASS::birthwt
+```
+
+**C.** Generate a 95% confidence interval for the mean birthweight of infants whose mothers **did** smoke during pregnancy using the bootstrap.
+
+```{r}
+d8c<-bwt %>% filter(smoke==1)
+#sum(is.na(d8c$bwt))
+M <- 5000
+means <- rep(NA, M)
+set.seed(3)
+for(i in 1:M){
+  out <- sample(d8c$bwt, length(d8c$bwt), replace = TRUE)
+  means[i] <- out %>% mean
+}
+means %>% quantile(c(0.025, 0.975))
+```
+
+95% confidence interval: (2620.781, 2919.596)
+
+
+```{r eval=FALSE, include=FALSE}
+set.seed(88)
+smoke_bwt<-d8c$bwt
+n <- length(smoke_bwt)
+M <- 5000
+out <- rep(NA, M)
+for(i in 1:M){
+  index <- sample.int(n, n, replace = TRUE)
+  out[i] <- smoke_bwt[index] %>% mean
+}
+quantile(out, c(0.025, 0.975))
+```
+
+
+**B.** Generate a 95% confidence interval for the mean birthweight of infants whose mothers **did** smoke during pregnancy using the Central Limit Theorem shortcut.
+
+```{r}
+d8b<-bwt %>% filter(smoke==1)
+t.test(d8b$bwt)$conf.int
+```
+95% confidence interval: (2619.094, 2924.744)
+
+**A.** Let $\mu_s$ be the mean birthweight of infants whose mothers smoked during pregnancy.  Let $\mu_{ns}$ be the mean for the non-smoking group.  Use simulation to calculate the 95% confidence interval for $\mu_s/\mu_{ns}$.
+
+```{r}
+d8a<-bwt %>% filter(smoke==0)
+smoke_bwt=d8b$bwt
+nonsmoke_bwt=d8a$bwt
+#length(smoke_bwt)
+#length(nonsmoke_bwt)
+
+
+n <- length(smoke_bwt)
+M <- 5000
+mu <- rep(NA, M)
+s=vector()
+ns=vector()
+set.seed(8)
+for(i in 1:M){
+  index <- sample.int(n, n, replace = TRUE)
+  s[i] <- smoke_bwt[index] %>% mean
+  ns[i] <- nonsmoke_bwt[index] %>% mean
+  mu[i]=s[i]/ns[i]
+}
+quantile(mu, c(0.025, 0.975))
+```
+
+The 95% confidence interval for $\mu_s/\mu_{ns}$ is (0.7917596, 0.9091714).
+
+# 9.  Inference
+
+**C.** Suppose two studies were performed looking at the risk of mild complication after hernia repair using open and laparoscopic surgical approaches.  The study results are below.  Using the data from each study individually, perform the hypothesis test that the risk of complication between open and laparoscopic repairs are the same under the usual point null.     What is the p-value from each study?  What do you conclude from each study?
+
+
+| Study 1 | Comp | No comp |
+|:---|:---|:---|
+| Open | 30 | 70 |
+| Lap  | 35 | 65 |
+
+```{r}
+prop.test(c(30,35),c(100,100))$p.value
+```
+
+| Study 2 | Comp | No comp |
+|:---|:---|:---|
+| Open | 600 |     1400 |
+| Lap  | 619 |     1381 |
+
+```{r}
+prop.test(c(600,619),c(2000,2000))$p.value
+```
+
+Since the p values from both studies are greater than 0.5, we can't reject the null hypothesis in both studies.
+
+
+**B.** Suppose that prior to the studies, the researchers established an equivalence threshold of 6 percentage points.  Using the confidence intervals, which studies (if any) showed a conclusive similarity between surgical approaches for the complication rate.  Explain why.
+
+```{r}
+#study 1
+prop.test(c(30,35),c(100,100))$conf.int
+#study 2
+prop.test(c(600,619),c(2000,2000))$conf.int
+```
+
+Given the interval mentioned in the question is (-0.06, 0.06) and the confidence intervals of study 1 and study 2 are calculated above, we can see that the given interval covers the confidence interval from study 2, while the given interval does not cover the confidence interval from study 1. As a result, we can conclude that study 2 shows a conclusive similarity between surgical approaches for the complication rate.
+
+**A.** If the data from the studies were combined, what is the smallest equivalence threshold that would identify a conclusive similarity between the surgical approaches?
+
+```{r}
+prop.test(c(630, 654), c(2100, 2100))$conf.int
+```
+
+Since the confidence interval of the combined studies is (-0.03976899, 0.01691185), we can conclude that the smallest equivalence threshold is 4 percentage points.
+
+# 10.  Joint Distributions
+
+**C.** Fill in the blank.  The sample correlation is a measure of ______the closeness of linear______ association.
+
+**B.** Explain why predictions from a conditional distribution generally have smaller prediction error than predictions from the marginal distribution.
+
+In joint distribution, for example -- given two dependent events A and B, marginal distribution covers more conditions than conditional distribution, while conditional distribution has more limitations than marginal distribution. As a result, conditional distribution will have smaller variance and deviance than marginal distribution, which lead to the result that conditional distribution generally have smaller prediction error than predictions from the marginal distribution as conditional distribution is more stable and cumulative.
+
+**A.** Use the CLT shortcut to calculate the 95% confidence interval for the correlation of arm circumference and arm length using the NHANES dataset.  Is the sample correlation a reasonable measure of association for this data?
+
+```{r}
+cor.test(nhgh$armc,nhgh$arml)
+```
+
+Since the null hypothesis of the correlation coefficient is that the two variables are not correlated and the p-value for this problem is less than 0.05, we have enough evidence to reject the null hypothesis. Also, the 95% confidence interval covers the the correlation coefficient of the sample and does not cover 0, which prevents type one and type two errors. As a result, we can conclude that the sample correlation is a reasonable measure of association for this data.
